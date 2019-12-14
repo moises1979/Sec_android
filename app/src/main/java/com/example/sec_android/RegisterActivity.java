@@ -14,6 +14,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -34,7 +36,8 @@ public class RegisterActivity extends AppCompatActivity {
     private Button buttonRegister, buttonReturn;
 
     private FirebaseAuth mAuth;
-
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference databaseReference;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +48,8 @@ public class RegisterActivity extends AppCompatActivity {
         editTextRepPasswordR = (EditText) findViewById(R.id.editTextRepPasswordRegister);
         buttonRegister = (Button) findViewById(R.id.buttonRegister);
         buttonReturn = (Button) findViewById(R.id.buttonReturn);
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        databaseReference = firebaseDatabase.getReference();
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,6 +68,13 @@ public class RegisterActivity extends AppCompatActivity {
                                     @Override
                                     public void onComplete(@NonNull Task<AuthResult> task) {
                                         if (task.isSuccessful()) {
+                                            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                            User user = new User();
+                                            user.setUid(uid);
+                                            user.setCorreo(editTextEmailR.getText().toString());
+                                            databaseReference.child("Users").child(user.getUid()).setValue(user);
+                                            DBhelper dbHelper = new DBhelper(RegisterActivity.this);
+                                            dbHelper.insertData(editTextEmailR.getText().toString(), uid, RegisterActivity.this);
                                             Toast.makeText(RegisterActivity.this, "Usuario creado con exito", Toast.LENGTH_SHORT).show();
                                             Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                                             startActivity(intent);
